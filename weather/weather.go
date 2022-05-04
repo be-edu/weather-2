@@ -1,6 +1,9 @@
 package weather
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Prediction describes a weather prediction.
 type Prediction uint8
@@ -19,21 +22,35 @@ func (p Prediction) ToString() string {
 	return [...]string{"Sunny", "Rain", "Overcast", "Snow", "Unknown"}[p]
 }
 
-// PredictAtCoords returns a weather prediction for the specified GPS coordinates.
-func PredictAtCoords(lat, long float64) (Prediction, error) {
-	if lat < -90 || lat > 90 {
+// Locator is implemented by objects that can represent a location as a
+// pair of GPS coordinates.
+type Locator interface {
+	Coords() (float64, float64, error)
+}
+
+// Predict the weather at the specified location.
+func Predict(loc Locator) (Prediction, error) {
+	coord1, coord2, err := loc.Coords()
+
+	if err != nil {
+		fmt.Println(coord1)
+		fmt.Println(coord2)
+		return Unknown, err
+	}
+
+	if coord1 < -90 || coord1 > 90 {
 		return Unknown, errors.New("invalid latitude")
-	} else if long < -180 || long > 180 {
+	} else if coord2 < -180 || coord2 > 180 {
 		return Unknown, errors.New("invalid longitude")
-	} else if lat >= -90 && lat < -60 {
+	} else if coord1 >= -90 && coord1 < -60 {
 		return Snow, nil
-	} else if lat >= -60 && lat < -20 {
+	} else if coord1 >= -60 && coord1 < -20 {
 		return Sunny, nil
-	} else if lat >= -20 && lat < 20 {
+	} else if coord1 >= -20 && coord1 < 20 {
 		return Overcast, nil
-	} else if lat >= 20 && lat < 60 {
+	} else if coord1 >= 20 && coord1 < 60 {
 		return Rain, nil
-	} else if lat >= 60 && lat <= 90 {
+	} else if coord1 >= 60 && coord1 <= 90 {
 		return Snow, nil
 	}
 
@@ -42,5 +59,5 @@ func PredictAtCoords(lat, long float64) (Prediction, error) {
 
 // GetVersion returns the package version
 func GetVersion() string {
-	return "v1.0.0"
+	return "v2.0.0"
 }
